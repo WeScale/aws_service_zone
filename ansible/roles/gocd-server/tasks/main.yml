@@ -1,0 +1,55 @@
+---
+- apt_key:
+    url="https://download.go.cd/GOCD-GPG-KEY.asc"
+    state=present
+
+- apt_repository:
+    repo="deb https://download.go.cd /"
+    state=present
+    update_cache=yes
+
+- apt:
+    name="{{ item }}"
+    state=present
+  with_items:
+    - go-server
+
+- service:
+    name="go-server"
+    state=started
+    enabled=yes
+
+- name: create dot_ssh directory for go user
+  file:
+    path="/var/go/.ssh"
+    state=directory
+    owner=go
+    group=go
+    mode=0700
+
+- copy:
+    src="nginx_gocd.conf"
+    dest="/etc/nginx/conf.d/default.conf"
+  notify: reload nginx
+
+- name: ensure git repositories are known hosts
+  lineinfile:
+    dest="/etc/ssh/known_hosts"
+    create=yes
+    state=present
+    regexp="^{{ item| replace('.','\.') }}"
+    line="{{ lookup('pipe', 'ssh-keyscan -t rsa ' + item) }}"
+  with_items: "{{ gocd_server__git_repos }}"
+
+- name: install additional plugins
+  get_url:
+    url="{{ item.url }}"
+    dest="/var/lib/go-server/plugins/bundled/{{ item.name }}"
+    checksum="{{ item.sum }}"
+  with_items: "{{ gocd_server__plugins }}"
+  notify: restart gocd server
+
+- lineinfile:
+    dest="/etc/default/go-server"
+    line="export AWS_USE_IAM_ROLE=1"
+  notify: restart gocd server

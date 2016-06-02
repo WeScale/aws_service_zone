@@ -1,0 +1,26 @@
+---
+- name: check packer is installed
+  stat: path=/usr/local/bin/packer
+  register: packer_bin_check
+
+- name: setting fact packer_installed
+  set_fact:
+    packer_installed="{{ packer_bin_check.stat.exists }}"
+
+- name: checking installed packer version
+  when: packer_installed
+  shell: "/usr/local/bin/packer --version"
+  register: packer_version
+  changed_when: false
+  failed_when: packer_version.rc != 1
+
+- name: setting fact need_to_install_packer
+  set_fact:
+    need_to_install_packer="{{ (not packer_installed) or (packer_version.stdout != cloud_toolbox__packer_version) }}"
+
+- name: packer download and expand
+  when: need_to_install_packer
+  unarchive:
+    src="{{ cloud_toolbox__packer_url }}"
+    dest=/usr/local/bin
+    copy=no

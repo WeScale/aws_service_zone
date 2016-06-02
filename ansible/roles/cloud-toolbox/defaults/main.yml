@@ -1,0 +1,8 @@
+---
+cloud_toolbox__hashicorp_url: "https://releases.hashicorp.com"
+
+cloud_toolbox__packer_version: "0.10.1"
+cloud_toolbox__packer_url: "{{ cloud_toolbox__hashicorp_url}}/packer/{{ cloud_toolbox__packer_version }}/packer_{{ cloud_toolbox__packer_version }}_linux_amd64.zip"
+
+cloud_toolbox__terraform_version: "0.6.16"
+cloud_toolbox__terraform_url: "{{ cloud_toolbox__hashicorp_url}}/terraform/{{ cloud_toolbox__terraform_version }}/terraform_{{ cloud_toolbox__terraform_version }}_linux_amd64.zip"

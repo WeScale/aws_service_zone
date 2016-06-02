@@ -1,0 +1,27 @@
+---
+- apt_key:
+    url="https://download.go.cd/GOCD-GPG-KEY.asc"
+    state=present
+
+- apt_repository:
+    repo="deb https://download.go.cd /"
+    state=present
+    update_cache=yes
+
+- apt:
+    name="{{ item }}"
+    state=present
+  with_items:
+    - go-agent
+
+- lineinfile:
+    dest="/etc/default/go-agent"
+    regexp="^GO_SERVER=.*$"
+    line="GO_SERVER={{ gocd_agent__server }}"
+  notify:
+    - restart go agent
+
+- service:
+    name="go-agent"
+    state=started
+    enabled=yes

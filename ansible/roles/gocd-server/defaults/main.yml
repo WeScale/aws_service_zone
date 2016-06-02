@@ -1,0 +1,16 @@
+---
+gocd_server__git_repos:
+  - "github.com"
+
+gocd_server__plugins:
+  - name: "s3fetch-assembly-2.0.2.jar"
+    url: "https://github.com/ind9/gocd-s3-artifacts/releases/download/v2.0.2/s3fetch-assembly-2.0.2.jar"
+    sum: "sha256:38ba20491b64147a6ab0929c5184235ef3dba8601960669f9af20e5d48e90256"
+
+  - name: "s3publish-assembly-2.0.2.jar"
+    url: "https://github.com/ind9/gocd-s3-artifacts/releases/download/v2.0.2/s3publish-assembly-2.0.2.jar"
+    sum: "sha256:3a746abe6c66b6d964faa1474af7362aa059fa00b631385fc92d3cfcb83b6be1"
+
+  - name: "s3material-assembly-2.0.2.jar"
+    url: "https://github.com/ind9/gocd-s3-artifacts/releases/download/v2.0.2/s3material-assembly-2.0.2.jar"
+    sum: "sha256:da3b75d5eb0fad07a51d4e8a0474c89eab765bf697a50242891ddd8d22c4441a"

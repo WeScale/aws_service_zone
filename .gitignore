@@ -1,0 +1,8 @@
+.idea/
+.terraform/
+*.iml
+*.ipr
+*.iws
+*.retry
+*.tfstate.backup
+secrets

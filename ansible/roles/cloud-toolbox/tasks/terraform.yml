@@ -1,0 +1,27 @@
+---
+- name: check terraform is installed
+  stat: path=/usr/local/bin/terraform
+  register: terraform_bin_check
+
+- name: setting fact terraform_installed
+  set_fact:
+    terraform_installed="{{ terraform_bin_check.stat.exists }}"
+
+- name: checking installed terraform version
+  when: terraform_installed
+  shell: >
+    terraform -version | grep -v '^$' | sed 's/Terraform v//'
+  ignore_errors: true
+  changed_when: false
+  register: terraform_version
+
+- name: setting fact need_to_install_terraform
+  set_fact:
+    need_to_install_terraform="{{ (not terraform_installed) or (terraform_version.stdout != cloud_toolbox__terraform_version) }}"
+
+- name: terraform download and expand
+  when: need_to_install_terraform
+  unarchive:
+    src="{{ cloud_toolbox__terraform_url }}"
+    dest=/usr/local/bin
+    copy=no

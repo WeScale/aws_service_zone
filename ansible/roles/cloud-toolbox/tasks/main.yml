@@ -1,0 +1,4 @@
+---
+- include: packer.yml
+- include: terraform.yml
+- include: aws.yml

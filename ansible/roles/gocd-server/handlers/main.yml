@@ -1,0 +1,12 @@
+---
+- name: reload nginx
+  service:
+    name=nginx
+    state=reloaded
+    enabled=yes
+
+- name: restart gocd server
+  service:
+    name=go-server
+    state=restarted
+    enabled=yes

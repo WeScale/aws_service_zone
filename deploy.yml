@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  become: no
+
+  tasks:
+    - shell: >
+        terraform apply
+        -var-file={{ playbook_dir }}/terraform/terraform.tfvars
+        -state={{ playbook_dir }}/terraform/terraform.tfstate
+        {{ playbook_dir }}/terraform
+
+    - shell: >
+        terraform output -state={{ playbook_dir }}/terraform/terraform.tfstate bastion_ip
+      register: bastion_ip_raw
+      changed_when: false
+
+    - add_host:
+        name="{{ bastion_ip_raw.stdout }}"
+        groups=bastions
+        ansible_ssh_private_key_file="secrets/newvizzboard.pem"
+        ansible_user="admin"
+
+- hosts: bastions
+  become: yes
+
+  pre_tasks:
+    - name: ansible-ization
+      script: >
+        {{ playbook_dir }}/ansible/scripts/ansible-seed-debian.sh
+      register: ansible_seed
+      changed_when: ansible_seed.rc == 0
+      failed_when: ansible_seed.rc != 0 and ansible_seed.rc != 42
+
+  roles:
+    - common
+    - gocd-server
+    - gocd-agent
+    - cloud-toolbox
+

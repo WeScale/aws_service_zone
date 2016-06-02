@@ -1,0 +1,9 @@
+---
+- name: aws cli tools install
+  pip:
+    name="{{ item }}"
+    state=latest
+  with_items:
+    - botocore
+    - boto
+    - awscli
