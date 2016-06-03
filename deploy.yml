@@ -2,6 +2,14 @@
 - hosts: localhost
   become: no
 
+  pre_tasks:
+    - fail: msg="Mandatory env var {{ item }} not found."
+      when: lookup('env', item) == ''
+      with_items:
+        - "AWS_DEFAULT_REGION"
+        - "AWS_SECRET_ACCESS_KEY"
+        - "AWS_ACCESS_KEY_ID"
+
   tasks:
     - shell: >
         terraform apply
@@ -36,4 +44,3 @@
     - gocd-server
     - gocd-agent
     - cloud-toolbox
-

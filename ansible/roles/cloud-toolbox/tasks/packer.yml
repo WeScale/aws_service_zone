@@ -9,7 +9,8 @@
 
 - name: checking installed packer version
   when: packer_installed
-  shell: "/usr/local/bin/packer --version"
+  shell: >
+    /usr/local/bin/packer --version
   register: packer_version
   changed_when: false
   failed_when: packer_version.rc != 1
@@ -24,3 +25,7 @@
     src="{{ cloud_toolbox__packer_url }}"
     dest=/usr/local/bin
     copy=no
+
+- file:
+    path="/usr/local/share/packer"
+    state=directory
