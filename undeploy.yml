@@ -2,10 +2,20 @@
 - hosts: localhost
   become: no
 
+  pre_tasks:
+    - name: Checking for AWS mandatory env vars
+      fail: msg="Mandatory env var {{ item }} not found."
+      when: lookup('env', item) == ''
+      with_items:
+        - "AWS_DEFAULT_REGION"
+        - "AWS_SECRET_ACCESS_KEY"
+        - "AWS_ACCESS_KEY_ID"
+
   tasks:
-    - shell: >
-        terraform destroy
-        -var-file={{ playbook_dir }}/terraform/terraform.tfvars
-        -state={{ playbook_dir }}/terraform/terraform.tfstate
-        -force
-        {{ playbook_dir }}/terraform
+    - name: Destroying Service VPC
+      shell: >
+        terraform destroy -force
+      args:
+        chdir: "{{ playbook_dir }}/terraform"
+      register: tf_apply_raw
+      changed_when: not (tf_apply_raw.stdout|search('0 added, 0 changed, 0 destroyed'))

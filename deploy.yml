@@ -3,7 +3,8 @@
   become: no
 
   pre_tasks:
-    - fail: msg="Mandatory env var {{ item }} not found."
+    - name: Checking for AWS mandatory env vars
+      fail: msg="Mandatory env var {{ item }} not found."
       when: lookup('env', item) == ''
       with_items:
         - "AWS_DEFAULT_REGION"
@@ -11,28 +12,43 @@
         - "AWS_ACCESS_KEY_ID"
 
   tasks:
-    - shell: >
+    - name: Applying Terraform (may take several minutes)
+      shell: >
         terraform apply
-        -var-file={{ playbook_dir }}/terraform/terraform.tfvars
-        -state={{ playbook_dir }}/terraform/terraform.tfstate
-        {{ playbook_dir }}/terraform
+      args:
+        chdir: "{{ playbook_dir }}/terraform"
+      register: tf_apply_raw
+      changed_when: not (tf_apply_raw.stdout|search('0 added, 0 changed, 0 destroyed'))
 
-    - shell: >
-        terraform output -state={{ playbook_dir }}/terraform/terraform.tfstate bastion_ip
+    - name: Getting Terraform's output 'bastion_ip'
+      shell: >
+        terraform output bastion_ip
+      args:
+        chdir: "{{ playbook_dir }}/terraform"
       register: bastion_ip_raw
       changed_when: false
 
-    - add_host:
+    - name: Adding 'bastion_ip' to host group 'bastions'
+      add_host:
         name="{{ bastion_ip_raw.stdout }}"
         groups=bastions
         ansible_ssh_private_key_file="secrets/newvizzboard.pem"
         ansible_user="admin"
+      changed_when: false
+
+    - name: Waiting for bastion to be reachable via ssh
+      wait_for:
+        port=22
+        host="{{ bastion_ip_raw.stdout }}"
+        search_regex=OpenSSH
+        delay=10
+        timeout=300
 
 - hosts: bastions
   become: yes
 
   pre_tasks:
-    - name: ansible-ization
+    - name: Ansible-ization
       script: >
         {{ playbook_dir }}/ansible/scripts/ansible-seed-debian.sh
       register: ansible_seed
