@@ -1,6 +1,6 @@
 keypair = "newvizzboard"
 
-vpc_name = "ServiceZone"
+vpc_name = "Service"
 
 vpc_cidr = "10.100.0.0/16"
 

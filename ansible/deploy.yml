@@ -11,12 +11,17 @@
         - "AWS_SECRET_ACCESS_KEY"
         - "AWS_ACCESS_KEY_ID"
 
+    - name: Generating terraform vars
+      template:
+        src="templates/tfvars.j2"
+        dest="{{ playbook_dir }}/../terraform/terraform.tfvars"
+
   tasks:
     - name: Applying Terraform (may take several minutes)
       shell: >
         terraform apply
       args:
-        chdir: "{{ playbook_dir }}/terraform"
+        chdir: "{{ playbook_dir }}/../terraform"
       register: tf_apply_raw
       changed_when: not (tf_apply_raw.stdout|search('0 added, 0 changed, 0 destroyed'))
 
@@ -24,7 +29,7 @@
       shell: >
         terraform output bastion_ip
       args:
-        chdir: "{{ playbook_dir }}/terraform"
+        chdir: "{{ playbook_dir }}/../terraform"
       register: bastion_ip_raw
       changed_when: false
 
@@ -32,8 +37,8 @@
       add_host:
         name="{{ bastion_ip_raw.stdout }}"
         groups=bastions
-        ansible_ssh_private_key_file="secrets/newvizzboard.pem"
-        ansible_user="admin"
+        ansible_ssh_private_key_file="{{ srv_key_path }}"
+        ansible_user="{{ srv_user }}"
       changed_when: false
 
     - name: Waiting for bastion to be reachable via ssh
@@ -50,7 +55,7 @@
   pre_tasks:
     - name: Ansible-ization
       script: >
-        {{ playbook_dir }}/ansible/scripts/ansible-seed-debian.sh
+        {{ playbook_dir }}/scripts/ansible-seed-debian.sh
       register: ansible_seed
       changed_when: ansible_seed.rc == 0
       failed_when: ansible_seed.rc != 0 and ansible_seed.rc != 42
@@ -60,3 +65,25 @@
     - gocd-server
     - gocd-agent
     - cloud-toolbox
+
+- hosts: localhost
+  become: no
+  tasks:
+    - name: Generating ssh.cfg
+      template:
+        src="templates/ssh.cfg.j2"
+        dest="{{ playbook_dir }}/../ssh.cfg"
+
+    - name: Generating ssh.cfg
+      template:
+        src="templates/hosts.j2"
+        dest="{{ playbook_dir }}/../hosts"
+
+    - name: Adding ssh options to ansible.cfg
+      blockinfile:
+        dest: "{{ playbook_dir }}/../ansible.cfg"
+        state: present
+        block: |
+          [ssh_connection]
+          pipelining=True
+          ssh_args="-F ssh.cfg"
