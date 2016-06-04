@@ -20,6 +20,12 @@
       register: tf_apply_raw
       changed_when: not (tf_apply_raw.stdout|search('0 added, 0 changed, 0 destroyed'))
 
+    - name: Removing default host inventory from ansible.cfg
+      lineinfile:
+        dest="{{ playbook_dir }}/../ansible.cfg"
+        line="inventory=./hosts"
+        state=absent
+
     - name: Removing ssh options from ansible.cfg
       blockinfile:
         dest: "{{ playbook_dir }}/../ansible.cfg"

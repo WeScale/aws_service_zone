@@ -79,6 +79,13 @@
         src="templates/hosts.j2"
         dest="{{ playbook_dir }}/../hosts"
 
+    - name: Removing default host inventory from ansible.cfg
+      lineinfile:
+        dest="{{ playbook_dir }}/../ansible.cfg"
+        line="inventory=./hosts"
+        state=present
+        insertafter="^\[defaults\]$"
+
     - name: Adding ssh options to ansible.cfg
       blockinfile:
         dest: "{{ playbook_dir }}/../ansible.cfg"
