@@ -94,6 +94,16 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = ["${aws_security_group.bastions.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ami_building_instance_profile.id}"
 
+  user_data = <<EOF
+#cloud-config
+write_files:
+  - path: /etc/default/aws_env
+    permissions: 440
+    content: |
+      PUBLIC_SUBNET_ID: "${module.zone_a.public_subnet_id}"
+      PRIVATE_SUBNET_ID: "${module.zone_a.private_subnet_id}"
+EOF
+
   tags {
     Name = "builder-${var.vpc_name}-${var.az_1}"
     Bastion_realm_sg_id = "${aws_security_group.bastion_realm.id}"
@@ -103,6 +113,16 @@ resource "aws_instance" "bastion" {
 resource "aws_eip" "bastion" {
   instance = "${aws_instance.bastion.id}"
   vpc = true
+}
+
+resource "aws_s3_bucket" "b" {
+  bucket = "my_tf_test_bucket"
+  acl = "private"
+
+  tags {
+    Name = "My bucket"
+    Environment = "Dev"
+  }
 }
 
 resource "aws_security_group" "bastions" {

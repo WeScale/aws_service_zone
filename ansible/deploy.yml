@@ -72,6 +72,9 @@
     - gocd-agent
     - cloud-toolbox
 
+  tasks:
+    - script: scripts/clone-go-agent.sh 1
+
 - hosts: localhost
   become: no
   tasks:
