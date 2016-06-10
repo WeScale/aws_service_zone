@@ -17,6 +17,12 @@
         dest="{{ playbook_dir }}/../terraform/terraform.tfvars"
 
   tasks:
+    - name: Getting Terraform modules
+      shell: >
+        terraform get -update
+      args:
+        chdir: "{{ playbook_dir }}/../terraform"
+
     - name: Applying Terraform (may take several minutes)
       shell: >
         terraform apply
