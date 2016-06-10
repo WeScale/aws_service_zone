@@ -102,10 +102,11 @@ write_files:
     content: |
       PUBLIC_SUBNET_ID: "${module.zone_a.public_subnet_id}"
       PRIVATE_SUBNET_ID: "${module.zone_a.private_subnet_id}"
+      BASTION_REALM_SG_ID: "${aws_security_group.bastion_realm.id}"
 EOF
 
   tags {
-    Name = "builder-${var.vpc_name}-${var.az_1}"
+    Name = "bastion-${var.vpc_name}-${var.az_1}"
     Bastion_realm_sg_id = "${aws_security_group.bastion_realm.id}"
   }
 }
@@ -116,12 +117,12 @@ resource "aws_eip" "bastion" {
 }
 
 resource "aws_s3_bucket" "b" {
-  bucket = "my_tf_test_bucket"
+  bucket = "${var.vpc_name}-bucket"
   acl = "private"
 
   tags {
-    Name = "My bucket"
-    Environment = "Dev"
+    Name = "${var.vpc_name}-bucket"
+    Environment = "${var.vpc_name}"
   }
 }
 
