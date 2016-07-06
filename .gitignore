@@ -7,3 +7,4 @@
 *.tfstate.backup
 secrets
 ssh.cfg
+ansible/roles/debian-base

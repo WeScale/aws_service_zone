@@ -67,7 +67,7 @@
       failed_when: ansible_seed.rc != 0 and ansible_seed.rc != 42
 
   roles:
-    - common
+    - debian-base
     - gocd-server
     - gocd-agent
     - cloud-toolbox
