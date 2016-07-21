@@ -1,34 +1,5 @@
 provider "aws" {}
 
-resource "aws_vpc" "vpc" {
-  cidr_block = "${var.vpc_cidr}"
-  enable_dns_hostnames = true
-  tags {
-    Name = "${var.vpc_name}"
-  }
-}
-
-resource "aws_internet_gateway" "gateway" {
-  vpc_id = "${aws_vpc.vpc.id}"
-}
-
-resource "aws_route_table" "main" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = "${aws_internet_gateway.gateway.id}"
-  }
-  tags {
-    Name = "Main route table for ${var.vpc_name} VPC"
-  }
-}
-
-resource "aws_main_route_table_association" "main" {
-  vpc_id = "${aws_vpc.vpc.id}"
-  route_table_id = "${aws_route_table.main.id}"
-}
-
-
 resource "aws_iam_role" "ami_building_role" {
   name = "ami_service_role"
 
@@ -74,23 +45,13 @@ resource "aws_iam_instance_profile" "ami_building_instance_profile" {
   roles = ["${aws_iam_role.ami_building_role.name}"]
 }
 
-module "zone_a" {
-  source = "github.com/WeScale/tf-mod-aws-az"
-
-  vpc_id = "${aws_vpc.vpc.id}"
-  vpc_name = "${var.vpc_name}"
-  availability_zone = "${var.az_1}"
-  public_subnet_cidr = "${var.public_subnet_cidr_1}"
-  private_subnet_cidr = "${var.private_subnet_cidr_1}"
-  public_gateway_route_table_id = "${aws_route_table.main.id}"
-}
 
 resource "aws_instance" "bastion" {
 
   ami = "${var.bastion_ami_id}"
   instance_type = "${var.bastion_instance_type}"
   key_name = "${var.keypair}"
-  subnet_id = "${module.zone_a.public_subnet_id}"
+  subnet_id = "${var.public_subnet_id}"
   vpc_security_group_ids = ["${aws_security_group.bastions.id}"]
   iam_instance_profile = "${aws_iam_instance_profile.ami_building_instance_profile.id}"
 
@@ -100,8 +61,8 @@ write_files:
   - path: /etc/default/aws_env
     permissions: 440
     content: |
-      PUBLIC_SUBNET_ID: "${module.zone_a.public_subnet_id}"
-      PRIVATE_SUBNET_ID: "${module.zone_a.private_subnet_id}"
+      PUBLIC_SUBNET_ID: "${var.public_subnet_id}"
+      PRIVATE_SUBNET_ID: "${var.private_subnet_id}"
       BASTION_REALM_SG_ID: "${aws_security_group.bastion_realm.id}"
 EOF
 
@@ -129,7 +90,7 @@ resource "aws_s3_bucket" "b" {
 resource "aws_security_group" "bastions" {
   name = "service_bastions"
   description = "Allow SSH traffic from the internet"
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port = 22
@@ -148,7 +109,7 @@ resource "aws_security_group" "bastions" {
 
 resource "aws_security_group" "bastion_realm" {
   name = "service_bastion_realm"
-  vpc_id = "${aws_vpc.vpc.id}"
+  vpc_id = "${var.vpc_id}"
 
   ingress {
     from_port = 22

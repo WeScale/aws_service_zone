@@ -1,6 +1,6 @@
 variable "vpc_name" {}
 
-variable "vpc_cidr" {}
+variable "vpc_id" {}
 
 variable "amis" {
   default = {
@@ -10,9 +10,9 @@ variable "amis" {
 
 variable "az_1" {}
 
-variable "private_subnet_cidr_1" {}
+variable "private_subnet_id" {}
 
-variable "public_subnet_cidr_1" {}
+variable "public_subnet_id" {}
 
 variable "keypair" {}
 
