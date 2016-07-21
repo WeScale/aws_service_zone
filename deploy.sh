@@ -7,4 +7,5 @@ if [ -z "$VAR_YAML_FILE" ]; then
     exit 1
 fi
 
+ansible-galaxy install -r requirements.yml
 ansible-playbook ansible/deploy.yml -e@$1
